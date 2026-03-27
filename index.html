@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Green$ Prototype</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#2e7d32">
+
+    <style>
+        body { margin: 0; background: #000; display: flex; justify-content: center; overflow: hidden; height: 100vh; font-family: sans-serif; }
+        .phone-screen { position: relative; width: 100vw; max-width: 500px; height: 100vh; background: #fff; }
+        
+        img { 
+            width: 100%; height: 100%; object-fit: contain; 
+            position: absolute; top: 0; left: 0; 
+            transition: opacity 0.2s ease-in-out; 
+        }
+
+        .hidden { opacity: 0; pointer-events: none; }
+        .visible { opacity: 1; pointer-events: auto; }
+
+        /* Hotspots */
+        .hotspot { position: absolute; cursor: pointer; z-index: 10; }
+        
+        /* DEBUG MODE: Change 'transparent' to 'rgba(255,0,0,0.4)' to see button boxes */
+        .debug { background: transparent; } 
+
+        /* 1. The main GS Circle button at the bottom center */
+        #btn-open-menu { bottom: 2%; left: 38%; width: 24%; height: 11%; }
+
+        /* 2. The 'X' button to close the menu (Top right of the white pop-up) */
+        #btn-close-menu { top: 59%; right: 7%; width: 12%; height: 6%; }
+
+        /* 3. The 'Gift' Icon (換禮品) - Middle icon of the 5 circles */
+        #btn-to-qr { top: 65%; left: 38%; width: 24%; height: 12%; }
+
+        /* 4. Reset: Click anywhere on QR to return home */
+        #btn-reset-qr { top: 0; left: 0; width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+
+<div class="phone-screen">
+    <img src="home.png" id="img-home" class="visible">
+    <img src="menu.png" id="img-menu" class="hidden">
+    <img src="qr.png"   id="img-qr"   class="hidden">
+
+    <div id="btn-open-menu" class="hotspot debug" onclick="showMenu()"></div>
+    <div id="btn-close-menu" class="hotspot debug" style="display:none;" onclick="showHome()"></div>
+    <div id="btn-to-qr"     class="hotspot debug" style="display:none;" onclick="showQR()"></div>
+    <div id="btn-reset-qr"  class="hotspot debug" style="display:none;" onclick="showHome()"></div>
+</div>
+
+<script>
+    const homeImg = document.getElementById('img-home');
+    const menuImg = document.getElementById('img-menu');
+    const qrImg   = document.getElementById('img-qr');
+
+    const openBtn  = document.getElementById('btn-open-menu');
+    const closeBtn = document.getElementById('btn-close-menu');
+    const qrBtn    = document.getElementById('btn-to-qr');
+    const resetBtn = document.getElementById('btn-reset-qr');
+
+    function showMenu() {
+        // Switch Images
+        menuImg.className = 'visible';
+        // Switch Buttons
+        openBtn.style.display = 'none';
+        closeBtn.style.display = 'block';
+        qrBtn.style.display = 'block';
+    }
+
+    function showQR() {
+        // Switch Images
+        menuImg.className = 'hidden';
+        qrImg.className = 'visible';
+        // Switch Buttons
+        closeBtn.style.display = 'none';
+        qrBtn.style.display = 'none';
+        resetBtn.style.display = 'block';
+    }
+
+    function showHome() {
+        // Reset everything to start
+        homeImg.className = 'visible';
+        menuImg.className = 'hidden';
+        qrImg.className   = 'hidden';
+        
+        openBtn.style.display  = 'block';
+        closeBtn.style.display = 'none';
+        qrBtn.style.display    = 'none';
+        resetBtn.style.display = 'none';
+    }
+</script>
+
+</body>
+</html>
