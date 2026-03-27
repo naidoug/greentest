@@ -8,73 +8,89 @@
     <style>
         * { touch-action: none; -webkit-tap-highlight-color: transparent; user-select: none; }
         
-        /* Change background to white to avoid 'blackout' */
         body { margin: 0; background: #fff; overflow: hidden; height: 100vh; }
-        .phone-screen { position: relative; width: 100vw; height: 100vh; }
+        .phone-screen { position: relative; width: 100vw; height: 100vh; background-color: #000; }
         
-        img { 
+        /* Main Home Image */
+        #img-home { 
             width: 100%; height: 100%; object-fit: contain; 
-            position: absolute; top: 0; left: 0; pointer-events: none; 
+            position: absolute; top: 0; left: 0; 
         }
 
-        /* Semi-transparent red for aiming. We will hide this later. */
-        .hotspot { 
-            position: absolute; 
-            z-index: 999; 
-            background: rgba(255, 0, 0, 0.4); 
-            border: 2px solid red;
+        /* The Sliding Menu Layer */
+        #menu-layer {
+            position: absolute;
+            bottom: -100%; /* Start hidden below the screen */
+            left: 0;
+            width: 100%;
+            height: 100%; /* Matches screen height to keep aspect ratio */
+            transition: bottom 0.4s ease-out; /* The slide animation */
+            z-index: 20;
         }
 
-        /* 1. The GS Logo at the bottom */
-        #btn-to-menu { bottom: 8%; left: 40%; width: 25%; height: 12%; }
+        #menu-layer img {
+            width: 100%; height: 100%; object-fit: contain;
+        }
 
-        /* 2. The Gift Icon (Higher up) */
-        #btn-to-qr   { top: 62%; left: 35%; width: 30%; height: 12%; display: none; }
+        /* The QR Code Layer (Instant swap) */
+        #img-qr {
+            width: 100%; height: 100%; object-fit: contain;
+            position: absolute; top: 0; left: 0;
+            z-index: 30;
+            display: none;
+        }
 
-        /* 3. Reset Button (QR screen) - Now a small 'X' zone instead of a full mask */
-        #btn-reset   { top: 45%; right: 2%; width: 15%; height: 8%; display: none; }
+        /* Hotspots */
+        .hotspot { position: absolute; z-index: 100; cursor: pointer; }
+        .debug { background: rgba(255, 0, 0, 0.4); border: 1px solid red; } /* Change to transparent later */
+
+        /* Positions */
+        #btn-open-menu { bottom: 2%; left: 38%; width: 24%; height: 11%; }
+        #btn-to-qr     { top: 62%; left: 38%; width: 24%; height: 12%; }
+        #btn-close-x   { top: 59%; right: 7%; width: 12%; height: 6%; }
+        #btn-reset-qr  { top: 0; left: 0; width: 100%; height: 100%; }
+
     </style>
 </head>
 <body>
 
 <div class="phone-screen">
     <img src="home.png" id="img-home">
-    <img src="menu.png" id="img-menu" style="display:none;">
-    <img src="qr.png"   id="img-qr"   style="display:none;">
 
-    <div id="btn-to-menu" class="hotspot" onclick="showMenu(event)"></div>
-    <div id="btn-to-qr"   class="hotspot" onclick="showQR(event)"></div>
-    <div id="btn-reset"   class="hotspot" onclick="showHome(event)"></div>
+    <div id="menu-layer">
+        <img src="MenuButton.png">
+        <div id="btn-to-qr" class="hotspot debug" onclick="showQR(event)"></div>
+        <div id="btn-close-x" class="hotspot debug" onclick="hideMenu(event)"></div>
+    </div>
+
+    <img src="qr.png" id="img-qr" onclick="hideQR()">
+
+    <div id="btn-open-menu" class="hotspot debug" onclick="showMenu()"></div>
 </div>
 
 <script>
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js');
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+
+    const menu = document.getElementById('menu-layer');
+    const qr = document.getElementById('img-qr');
+
+    function showMenu() {
+        menu.style.bottom = "0"; // Slides the menu up
     }
 
-    function showMenu(e) {
-        e.preventDefault();
-        document.getElementById('img-home').style.display = 'none';
-        document.getElementById('img-menu').style.display = 'block';
-        document.getElementById('btn-to-menu').style.display = 'none';
-        document.getElementById('btn-to-qr').style.display = 'block';
+    function hideMenu(e) {
+        if(e) e.stopPropagation();
+        menu.style.bottom = "-100%"; // Slides the menu back down
     }
 
     function showQR(e) {
-        e.preventDefault();
-        document.getElementById('img-menu').style.display = 'none';
-        document.getElementById('img-qr').style.display = 'block';
-        document.getElementById('btn-to-qr').style.display = 'none';
-        document.getElementById('btn-reset').style.display = 'block';
+        e.stopPropagation();
+        qr.style.display = "block";
     }
 
-    function showHome(e) {
-        e.preventDefault();
-        // Instead of reloading, just reset visibility
-        document.getElementById('img-qr').style.display = 'none';
-        document.getElementById('img-home').style.display = 'block';
-        document.getElementById('btn-reset').style.display = 'none';
-        document.getElementById('btn-to-menu').style.display = 'block';
+    function hideQR() {
+        qr.style.display = "none";
+        hideMenu(); // Also hide menu so we return to clean home screen
     }
 </script>
 </body>
