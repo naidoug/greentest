@@ -11,43 +11,42 @@
         body { margin: 0; background: #000; overflow: hidden; height: 100vh; }
         .phone-screen { position: relative; width: 100vw; height: 100vh; background: #fff; }
         
-        /* Background Home Image */
+        /* Base Image */
         #img-home { width: 100%; height: 100%; object-fit: contain; position: absolute; z-index: 1; }
 
-        /* Dark Overlay when menu is open */
+        /* Dimmer Overlay */
         #overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 10; opacity: 0; pointer-events: none;
             transition: opacity 0.3s ease;
         }
 
-        /* The Sliding Menu Buttons */
-        #menu-container {
+        /* Common Sliding Layer Style */
+        .sliding-layer {
             position: absolute; bottom: 0; left: 0; width: 100%; height: auto;
-            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            z-index: 20; display: flex; flex-direction: column;
+            transform: translateY(100%); 
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column;
         }
-        #menu-container img { width: 100%; height: auto; display: block; }
+        .sliding-layer img { width: 100%; height: auto; display: block; }
 
-        /* QR Image Layer */
-        #img-qr { 
-            width: 100%; height: 100%; object-fit: contain; position: absolute; 
-            top: 0; left: 0; z-index: 100; display: none; background: #fff;
-        }
+        /* Layer Z-Indices */
+        #menu-container { z-index: 20; }
+        #qr-container   { z-index: 30; } /* QR sits on top of Menu */
 
         /* Hotspots */
-        .hotspot { position: absolute; cursor: pointer; }
-        /* Set to transparent and remove border once aligned */
+        .hotspot { position: absolute; cursor: pointer; z-index: 100; }
         .debug { background: rgba(255, 0, 0, 0.4); border: 2px solid red; }
 
-        /* 1. GS Circle on Home Screen */
-        #btn-open { bottom: 2%; left: 35%; width: 30%; height: 12%; z-index: 5; }
+        /* Positions */
+        #btn-open     { bottom: 2%; left: 35%; width: 30%; height: 12%; z-index: 5; }
+        
+        /* Inside Menu Container */
+        #btn-gift     { bottom: 22%; left: 35%; width: 30%; height: 15%; }
+        #btn-close-m  { top: 5%; right: 5%; width: 15%; height: 10%; }
 
-        /* 2. Gift Icon (Inside Menu Container) */
-        #btn-gift { bottom: 22%; left: 35%; width: 30%; height: 15%; z-index: 25; }
-
-        /* 3. Close 'X' (Inside Menu Container) */
-        #btn-close { top: 5%; right: 5%; width: 15%; height: 10%; z-index: 25; }
+        /* Inside QR Container (qr_anime.png) */
+        #btn-close-qr { top: 5%; right: 5%; width: 15%; height: 10%; }
     </style>
 </head>
 <body>
@@ -56,23 +55,26 @@
     <img src="home.png" id="img-home">
     <div id="btn-open" class="hotspot debug" onclick="toggleMenu(true)"></div>
 
-    <div id="overlay" onclick="toggleMenu(false)"></div>
+    <div id="overlay" onclick="closeAll()"></div>
 
-    <div id="menu-container">
-        <img src="MenuButtons.png" onerror="alert('MenuButtons.png missing!')">
-        <div id="btn-gift" class="hotspot debug" onclick="showQR()"></div>
-        <div id="btn-close" class="hotspot debug" onclick="toggleMenu(false)"></div>
+    <div id="menu-container" class="sliding-layer">
+        <img src="MenuButtons.png">
+        <div id="btn-gift" class="hotspot debug" onclick="toggleQR(true)"></div>
+        <div id="btn-close-m" class="hotspot debug" onclick="toggleMenu(false)"></div>
     </div>
 
-    <img src="qr.png" id="img-qr" onclick="hideQR()">
+    <div id="qr-container" class="sliding-layer">
+        <img src="qr_anime.png" onerror="alert('qr_anime.png missing!')">
+        <div id="btn-close-qr" class="hotspot debug" onclick="toggleQR(false)"></div>
+    </div>
 </div>
 
 <script>
     if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 
     const menu = document.getElementById('menu-container');
+    const qrLayer = document.getElementById('qr-container');
     const overlay = document.getElementById('overlay');
-    const qr = document.getElementById('img-qr');
 
     function toggleMenu(isOpen) {
         menu.style.transform = isOpen ? "translateY(0)" : "translateY(100%)";
@@ -80,13 +82,18 @@
         overlay.style.pointerEvents = isOpen ? "auto" : "none";
     }
 
-    function showQR() {
-        qr.style.display = "block";
+    function toggleQR(isOpen) {
+        qrLayer.style.transform = isOpen ? "translateY(0)" : "translateY(100%)";
+        // If we close the QR, we should decide if the menu stays open or closes too.
+        // Usually, in these apps, closing the QR goes back to the home screen:
+        if (!isOpen) {
+            setTimeout(() => { toggleMenu(false); }, 200);
+        }
     }
 
-    function hideQR() {
-        qr.style.display = "none";
-        toggleMenu(false); // Close menu when returning from QR
+    function closeAll() {
+        toggleQR(false);
+        toggleMenu(false);
     }
 </script>
 
