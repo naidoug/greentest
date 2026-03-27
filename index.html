@@ -11,7 +11,7 @@
         body { margin: 0; background: #fff; overflow: hidden; height: 100vh; }
         .phone-screen { position: relative; width: 100vw; height: 100vh; background-color: #000; }
         
-        /* Main Home Image */
+        /* Base Home Image */
         #img-home { 
             width: 100%; height: 100%; object-fit: contain; 
             position: absolute; top: 0; left: 0; 
@@ -20,36 +20,42 @@
         /* The Sliding Menu Layer */
         #menu-layer {
             position: absolute;
-            bottom: -100%; /* Start hidden below the screen */
+            /* FIX: Start fully hidden below the bottom edge */
+            bottom: -100%; 
             left: 0;
             width: 100%;
-            height: 100%; /* Matches screen height to keep aspect ratio */
-            transition: bottom 0.4s ease-out; /* The slide animation */
+            height: 100%; 
+            transition: bottom 0.4s ease-out; 
             z-index: 20;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* Pushes the image to the bottom of this container */
         }
 
         #menu-layer img {
-            width: 100%; height: 100%; object-fit: contain;
+            width: 100%;
+            height: auto; /* Maintains aspect ratio */
+            display: block;
         }
 
-        /* The QR Code Layer (Instant swap) */
+        /* Hotspots */
+        .hotspot { position: absolute; z-index: 100; cursor: pointer; }
+        .debug { background: rgba(255, 0, 0, 0.4); border: 1px solid red; }
+
+        /* Button positions RELATIVE to the bottom-aligned menu */
+        #btn-open-menu { bottom: 2%; left: 38%; width: 24%; height: 11%; }
+        
+        /* These two are now measured from the BOTTOM of the screen */
+        #btn-to-qr     { bottom: 23%; left: 38%; width: 24%; height: 12%; }
+        #btn-close-x   { bottom: 35%; right: 7%; width: 12%; height: 6%; }
+
+        /* QR Layer */
         #img-qr {
             width: 100%; height: 100%; object-fit: contain;
             position: absolute; top: 0; left: 0;
             z-index: 30;
             display: none;
         }
-
-        /* Hotspots */
-        .hotspot { position: absolute; z-index: 100; cursor: pointer; }
-        .debug { background: rgba(255, 0, 0, 0.4); border: 1px solid red; } /* Change to transparent later */
-
-        /* Positions */
-        #btn-open-menu { bottom: 2%; left: 38%; width: 24%; height: 11%; }
-        #btn-to-qr     { top: 62%; left: 38%; width: 24%; height: 12%; }
-        #btn-close-x   { top: 59%; right: 7%; width: 12%; height: 6%; }
-        #btn-reset-qr  { top: 0; left: 0; width: 100%; height: 100%; }
-
     </style>
 </head>
 <body>
@@ -58,7 +64,7 @@
     <img src="home.png" id="img-home">
 
     <div id="menu-layer">
-        <img src="MenuButton.png">
+        <img src="MenuButtons.png">
         <div id="btn-to-qr" class="hotspot debug" onclick="showQR(event)"></div>
         <div id="btn-close-x" class="hotspot debug" onclick="hideMenu(event)"></div>
     </div>
@@ -75,12 +81,14 @@
     const qr = document.getElementById('img-qr');
 
     function showMenu() {
-        menu.style.bottom = "0"; // Slides the menu up
+        // This brings the bottom of the menu-layer (and the image inside) 
+        // to exactly the bottom of the phone screen.
+        menu.style.bottom = "0"; 
     }
 
     function hideMenu(e) {
         if(e) e.stopPropagation();
-        menu.style.bottom = "-100%"; // Slides the menu back down
+        menu.style.bottom = "-100%"; 
     }
 
     function showQR(e) {
@@ -90,7 +98,7 @@
 
     function hideQR() {
         qr.style.display = "none";
-        hideMenu(); // Also hide menu so we return to clean home screen
+        hideMenu();
     }
 </script>
 </body>
