@@ -11,42 +11,32 @@
         body { margin: 0; background: #000; overflow: hidden; height: 100vh; }
         .phone-screen { position: relative; width: 100vw; height: 100vh; background: #fff; }
         
-        /* Base Home Image */
         #img-home { width: 100%; height: 100%; object-fit: contain; position: absolute; z-index: 1; }
 
-        /* The Dimmer Overlay */
         #overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 10; opacity: 0; pointer-events: none;
-            transition: opacity 0.3s ease, background 0.3s ease; /* Transition for extra-dim */
+            transition: opacity 0.3s ease;
         }
 
-        /* Common Sliding Layer Style */
         .sliding-layer {
             position: absolute; bottom: 0; left: 0; width: 100%; height: auto;
             transform: translateY(100%); 
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
             display: flex; flex-direction: column;
         }
         .sliding-layer img { width: 100%; height: auto; display: block; }
 
-        /* Layer Z-Indices */
         #menu-container { z-index: 20; }
         #qr-container   { z-index: 30; }
 
-        /* Hotspots */
         .hotspot { position: absolute; cursor: pointer; z-index: 100; }
-        /* CHANGE THESE to transparent/none before final delivery */
+        /* Set background to transparent when finished aiming */
         .debug { background: rgba(255, 0, 0, 0.4); border: 2px solid red; }
 
-        /* 1. Open Button (on Home Screen) */
         #btn-open     { bottom: 2%; left: 35%; width: 30%; height: 12%; z-index: 5; }
-        
-        /* 2. Menu Buttons (Inside Menu Container) */
         #btn-gift     { bottom: 22%; left: 35%; width: 30%; height: 15%; }
         #btn-close-m  { top: 5%; right: 5%; width: 15%; height: 10%; }
-
-        /* 3. QR Buttons (Inside QR Container) */
         #btn-close-qr { top: 5%; right: 5%; width: 15%; height: 10%; }
     </style>
 </head>
@@ -60,7 +50,7 @@
 
     <div id="menu-container" class="sliding-layer">
         <img src="MenuButtons.png">
-        <div id="btn-gift" class="hotspot debug" onclick="showQRSlide()"></div>
+        <div id="btn-gift" class="hotspot debug" onclick="switchToQR()"></div>
         <div id="btn-close-m" class="hotspot debug" onclick="toggleMenu(false)"></div>
     </div>
 
@@ -71,57 +61,45 @@
 </div>
 
 <script>
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
-
     const menu = document.getElementById('menu-container');
     const qrLayer = document.getElementById('qr-container');
     const overlay = document.getElementById('overlay');
 
-    // Home to Menu
     function toggleMenu(isOpen) {
         menu.style.transform = isOpen ? "translateY(0)" : "translateY(100%)";
-        menu.style.opacity = "1"; // Ensure it's not hidden
+        menu.style.opacity = isOpen ? "1" : "0";
+        menu.style.visibility = isOpen ? "visible" : "hidden";
         
         overlay.style.opacity = isOpen ? "1" : "0";
-        overlay.style.background = "rgba(0,0,0,0.5)"; // Standard dim
         overlay.style.pointerEvents = isOpen ? "auto" : "none";
     }
 
-    // Menu to QR (The 'Double Rise')
-    function showQRSlide() {
-        // 1. Hide the menu button and layer IMMEDIATELY so it's gone.
+    function switchToQR() {
+        // 1. Instantly hide the MenuButton.png layer
         menu.style.opacity = "0";
-        menu.style.pointerEvents = "none";
-        
-        // 2. Extra dim for the final step
-        overlay.style.background = "rgba(0,0,0,0.7)"; 
+        menu.style.visibility = "hidden";
+        menu.style.transform = "translateY(100%)"; // Move it back down silently
 
-        // 3. Trigger the QR slide
+        // 2. Slide the QR layer up
         qrLayer.style.transform = "translateY(0)";
+        
+        // 3. Keep overlay active
+        overlay.style.opacity = "1";
+        overlay.style.background = "rgba(0,0,0,0.7)"; // Make background darker for QR
     }
 
-    // QR back to Home
     function toggleQR(isOpen) {
         if (!isOpen) {
-            // Slide QR back down
             qrLayer.style.transform = "translateY(100%)";
-            
-            // Re-dim to the original background tint and clean up the menu
-            setTimeout(() => { 
-                toggleMenu(false); 
-                menu.style.pointerEvents = "auto"; // Re-enable menu for next time
-            }, 200);
+            overlay.style.opacity = "0";
+            overlay.style.pointerEvents = "none";
+            // The menu is already hidden/down from switchToQR(), so we are back to Home.
         }
     }
 
-    // Overlay click: Reset all layers to home
     function closeAll() {
-        // Only works if the overlay is clickable (pointerEvents: auto)
-        if(overlay.style.pointerEvents === "auto") {
-            toggleQR(false); 
-            // In case just menu was open, need to close that too
-            toggleMenu(false); 
-        }
+        toggleQR(false);
+        toggleMenu(false);
     }
 </script>
 
