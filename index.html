@@ -11,41 +11,42 @@
         body { margin: 0; background: #000; overflow: hidden; height: 100vh; }
         .phone-screen { position: relative; width: 100vw; height: 100vh; background: #fff; }
         
-        /* Base Image */
+        /* Base Home Image */
         #img-home { width: 100%; height: 100%; object-fit: contain; position: absolute; z-index: 1; }
 
-        /* Dimmer Overlay */
+        /* The Dimmer Overlay */
         #overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); z-index: 10; opacity: 0; pointer-events: none;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.3s ease, background 0.3s ease; /* Transition for extra-dim */
         }
 
         /* Common Sliding Layer Style */
         .sliding-layer {
             position: absolute; bottom: 0; left: 0; width: 100%; height: auto;
             transform: translateY(100%); 
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
             display: flex; flex-direction: column;
         }
         .sliding-layer img { width: 100%; height: auto; display: block; }
 
         /* Layer Z-Indices */
         #menu-container { z-index: 20; }
-        #qr-container   { z-index: 30; } /* QR sits on top of Menu */
+        #qr-container   { z-index: 30; }
 
         /* Hotspots */
         .hotspot { position: absolute; cursor: pointer; z-index: 100; }
+        /* CHANGE THESE to transparent/none before final delivery */
         .debug { background: rgba(255, 0, 0, 0.4); border: 2px solid red; }
 
-        /* Positions */
+        /* 1. Open Button (on Home Screen) */
         #btn-open     { bottom: 2%; left: 35%; width: 30%; height: 12%; z-index: 5; }
         
-        /* Inside Menu Container */
+        /* 2. Menu Buttons (Inside Menu Container) */
         #btn-gift     { bottom: 22%; left: 35%; width: 30%; height: 15%; }
         #btn-close-m  { top: 5%; right: 5%; width: 15%; height: 10%; }
 
-        /* Inside QR Container (qr_anime.png) */
+        /* 3. QR Buttons (Inside QR Container) */
         #btn-close-qr { top: 5%; right: 5%; width: 15%; height: 10%; }
     </style>
 </head>
@@ -59,12 +60,12 @@
 
     <div id="menu-container" class="sliding-layer">
         <img src="MenuButtons.png">
-        <div id="btn-gift" class="hotspot debug" onclick="toggleQR(true)"></div>
+        <div id="btn-gift" class="hotspot debug" onclick="showQRSlide()"></div>
         <div id="btn-close-m" class="hotspot debug" onclick="toggleMenu(false)"></div>
     </div>
 
     <div id="qr-container" class="sliding-layer">
-        <img src="qr_anime.png" onerror="alert('qr_anime.png missing!')">
+        <img src="qr_anime.png">
         <div id="btn-close-qr" class="hotspot debug" onclick="toggleQR(false)"></div>
     </div>
 </div>
@@ -76,24 +77,51 @@
     const qrLayer = document.getElementById('qr-container');
     const overlay = document.getElementById('overlay');
 
+    // Home to Menu
     function toggleMenu(isOpen) {
         menu.style.transform = isOpen ? "translateY(0)" : "translateY(100%)";
+        menu.style.opacity = "1"; // Ensure it's not hidden
+        
         overlay.style.opacity = isOpen ? "1" : "0";
+        overlay.style.background = "rgba(0,0,0,0.5)"; // Standard dim
         overlay.style.pointerEvents = isOpen ? "auto" : "none";
     }
 
+    // Menu to QR (The 'Double Rise')
+    function showQRSlide() {
+        // 1. Hide the menu button and layer IMMEDIATELY so it's gone.
+        menu.style.opacity = "0";
+        menu.style.pointerEvents = "none";
+        
+        // 2. Extra dim for the final step
+        overlay.style.background = "rgba(0,0,0,0.7)"; 
+
+        // 3. Trigger the QR slide
+        qrLayer.style.transform = "translateY(0)";
+    }
+
+    // QR back to Home
     function toggleQR(isOpen) {
-        qrLayer.style.transform = isOpen ? "translateY(0)" : "translateY(100%)";
-        // If we close the QR, we should decide if the menu stays open or closes too.
-        // Usually, in these apps, closing the QR goes back to the home screen:
         if (!isOpen) {
-            setTimeout(() => { toggleMenu(false); }, 200);
+            // Slide QR back down
+            qrLayer.style.transform = "translateY(100%)";
+            
+            // Re-dim to the original background tint and clean up the menu
+            setTimeout(() => { 
+                toggleMenu(false); 
+                menu.style.pointerEvents = "auto"; // Re-enable menu for next time
+            }, 200);
         }
     }
 
+    // Overlay click: Reset all layers to home
     function closeAll() {
-        toggleQR(false);
-        toggleMenu(false);
+        // Only works if the overlay is clickable (pointerEvents: auto)
+        if(overlay.style.pointerEvents === "auto") {
+            toggleQR(false); 
+            // In case just menu was open, need to close that too
+            toggleMenu(false); 
+        }
     }
 </script>
 
