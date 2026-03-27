@@ -6,20 +6,33 @@
     <title>Green$ Proto</title>
     <link rel="manifest" href="manifest.json">
     <style>
-        /* FIX 1: Disable double-tap-to-zoom for instant clicks */
-        * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        * { touch-action: none; -webkit-tap-highlight-color: transparent; user-select: none; }
         
-        body { margin: 0; background: #000; display: flex; justify-content: center; overflow: hidden; height: 100vh; }
-        .phone-screen { position: relative; width: 100vw; max-width: 500px; height: 100vh; }
-        img { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; pointer-events: none; }
+        /* Change background to white to avoid 'blackout' */
+        body { margin: 0; background: #fff; overflow: hidden; height: 100vh; }
+        .phone-screen { position: relative; width: 100vw; height: 100vh; }
         
-        .hotspot { position: absolute; z-index: 10; cursor: pointer; }
-        /* Set to 'rgba(255,0,0,0.5)' to see the buttons during adjustment */
-        .debug { background: rgba(255, 0, 0, 0.4); } 
+        img { 
+            width: 100%; height: 100%; object-fit: contain; 
+            position: absolute; top: 0; left: 0; pointer-events: none; 
+        }
 
-        #btn-to-menu { bottom: 2%; left: 38%; width: 24%; height: 11%; }
-        #btn-to-qr   { top: 65%; left: 38%; width: 24%; height: 12%; display: none; }
-        #btn-reset   { top: 0; left: 0; width: 100%; height: 100%; display: none; }
+        /* Semi-transparent red for aiming. We will hide this later. */
+        .hotspot { 
+            position: absolute; 
+            z-index: 999; 
+            background: rgba(255, 0, 0, 0.4); 
+            border: 2px solid red;
+        }
+
+        /* 1. The GS Logo at the bottom */
+        #btn-to-menu { bottom: 2%; left: 35%; width: 30%; height: 10%; }
+
+        /* 2. The Gift Icon (Higher up) */
+        #btn-to-qr   { top: 62%; left: 35%; width: 30%; height: 12%; display: none; }
+
+        /* 3. Reset Button (QR screen) - Now a small 'X' zone instead of a full mask */
+        #btn-reset   { top: 2%; right: 2%; width: 15%; height: 8%; display: none; }
     </style>
 </head>
 <body>
@@ -29,43 +42,39 @@
     <img src="menu.png" id="img-menu" style="display:none;">
     <img src="qr.png"   id="img-qr"   style="display:none;">
 
-    <div id="btn-to-menu" class="hotspot debug" ontouchend="showMenu()"></div>
-    <div id="btn-to-qr"   class="hotspot debug" ontouchend="showQR()"></div>
-    <div id="btn-reset"   class="hotspot debug" ontouchend="showHome()"></div>
+    <div id="btn-to-menu" class="hotspot" onclick="showMenu(event)"></div>
+    <div id="btn-to-qr"   class="hotspot" onclick="showQR(event)"></div>
+    <div id="btn-reset"   class="hotspot" onclick="showHome(event)"></div>
 </div>
 
 <script>
-    // FIX 2: Register the Service Worker to enable "Standalone" mode (hides address bar)
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js');
     }
 
-    const home = document.getElementById('img-home');
-    const menu = document.getElementById('img-menu');
-    const qr   = document.getElementById('img-qr');
-    const btnMenu = document.getElementById('btn-to-menu');
-    const btnQr   = document.getElementById('btn-to-qr');
-    const btnReset = document.getElementById('btn-reset');
-
-    function showMenu() {
-        home.style.display = 'none';
-        menu.style.display = 'block';
-        btnMenu.style.display = 'none';
-        btnQr.style.display = 'block';
+    function showMenu(e) {
+        e.preventDefault();
+        document.getElementById('img-home').style.display = 'none';
+        document.getElementById('img-menu').style.display = 'block';
+        document.getElementById('btn-to-menu').style.display = 'none';
+        document.getElementById('btn-to-qr').style.display = 'block';
     }
 
-    function showQR() {
-        menu.style.display = 'none';
-        qr.style.display = 'block';
-        btnQr.style.display = 'none';
-        btnReset.style.display = 'block';
+    function showQR(e) {
+        e.preventDefault();
+        document.getElementById('img-menu').style.display = 'none';
+        document.getElementById('img-qr').style.display = 'block';
+        document.getElementById('btn-to-qr').style.display = 'none';
+        document.getElementById('btn-reset').style.display = 'block';
     }
 
-    function showHome() {
-        qr.style.display = 'none';
-        home.style.display = 'block';
-        btnReset.style.display = 'none';
-        btnMenu.style.display = 'block';
+    function showHome(e) {
+        e.preventDefault();
+        // Instead of reloading, just reset visibility
+        document.getElementById('img-qr').style.display = 'none';
+        document.getElementById('img-home').style.display = 'block';
+        document.getElementById('btn-reset').style.display = 'none';
+        document.getElementById('btn-to-menu').style.display = 'block';
     }
 </script>
 </body>
